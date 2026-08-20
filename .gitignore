@@ -1,5 +1,6 @@
 create_bugs_*.py
 make_ballast_fields.py
+rebuild_ballast_fixes.py
 ballast_fields.json
 cleanup_ballast.py
 rebuild_fixes.py
