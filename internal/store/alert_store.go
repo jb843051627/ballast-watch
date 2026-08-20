@@ -24,6 +24,7 @@ type ComplianceComplianceAlertStore interface {
 
 type SQLComplianceComplianceAlertStore struct {
 	db *DB
+	cache []*model.ComplianceAlert
 }
 
 func NewComplianceComplianceAlertStore(db *DB) ComplianceComplianceAlertStore {
@@ -113,6 +114,7 @@ func (s *SQLComplianceComplianceAlertStore) List(ctx context.Context, in model.C
 	}
 	q += " LIMIT ?"
 	args = append(args, in.Limit)
+	if s.cache != nil { return s.cache, nil }
 	rows, err := s.db.QueryContext(ctx, q, args...)
 	if err != nil {
 		return nil, err
@@ -126,6 +128,7 @@ func (s *SQLComplianceComplianceAlertStore) List(ctx context.Context, in model.C
 		}
 		out = append(out, a)
 	}
+	s.cache = out
 	return out, rows.Err()
 }
 
