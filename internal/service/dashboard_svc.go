@@ -52,7 +52,7 @@ func (s *DashboardService) Refresh(ctx context.Context) error {
 	for _, r := range tanks {
 		snap, err := s.buildTankSnapshot(ctx, r)
 		if err != nil {
-			return err
+			continue
 		}
 		s.cache.Set(r.ID, snap)
 	}
