@@ -85,9 +85,7 @@ func (s *ReportService) Trend(ctx context.Context, tankID int64, paramType strin
 			})
 		}
 	}
-	if len(res.Points) > limit {
-		res.Points = res.Points[len(res.Points)-limit:]
-	}
+	res.Points = res.Points[len(res.Points)-limit:]
 	return res, nil
 }
 
