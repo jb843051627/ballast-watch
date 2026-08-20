@@ -67,7 +67,7 @@ func (s *TreatmentCycleService) Complete(ctx context.Context, id int64) (*model.
 	}
 	b.Status = model.TreatmentCycleCompleted
 	b.EndAt = &endAt
-	openAlarm, err := s.compliance_compliance_alerts.CountOpenByLevel(ctx, b.BallastTankID, model.ComplianceAlertAlarm)
+	openAlarm, err := s.compliance_compliance_alerts.CountOpenByBallastTank(ctx, b.BallastTankID)
 	if err != nil {
 		return nil, err
 	}
