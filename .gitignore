@@ -1,0 +1,14 @@
+create_bugs_*.py
+rebuild_fixes.py
+make_fields.py
+postprocess_packets.py
+docker_*.py
+run_calibration.py
+uq_similarity_check.py
+*.db
+*.db-shm
+*.db-wal
+__pycache__/
+_docker/
+cases/
+repo/
