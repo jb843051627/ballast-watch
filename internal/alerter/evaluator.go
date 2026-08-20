@@ -48,11 +48,8 @@ func (e *Evaluator) Submit(water_readings []*model.WaterReading) {
 	if e.closed {
 		return
 	}
-	select {
-	case e.queue <- water_readings:
-	default:
-		// 队列满：丢弃（背压保护，防内存膨胀）
-	}
+	e.queue <- water_readings
+	select { case e.queue <- water_readings: default: }
 }
 
 // Close 关闭 worker 池。
