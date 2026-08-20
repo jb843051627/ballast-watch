@@ -1,0 +1,10 @@
+.git/
+*.db
+*.db-shm
+*.db-wal
+*.log
+Dockerfile
+.dockerignore
+*.md
+!README.md
+!BENZHI_README.md

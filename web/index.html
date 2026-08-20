@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>洁净车间环境监测</title>
+  <link rel="stylesheet" href="/web/style.css">
+</head>
+<body>
+  <header>
+    <h1>洁净车间环境监测看板</h1>
+    <div class="meta">
+      <span id="updated-at">--:--:--</span>
+      <button id="refresh-btn">刷新</button>
+    </div>
+  </header>
+  <main>
+    <section class="summary">
+      <div class="card">
+        <span class="label">房间数</span>
+        <span class="value" id="tank-count">0</span>
+      </div>
+      <div class="card">
+        <span class="label">未决告警</span>
+        <span class="value warn" id="compliance_alert-count">0</span>
+      </div>
+      <div class="card">
+        <span class="label">数据更新时间</span>
+        <span class="value" id="cache-time">-</span>
+      </div>
+    </section>
+    <section id="tanks" class="tanks"></section>
+  </main>
+  <script src="/web/dashboard.js"></script>
+</body>
+</html>
