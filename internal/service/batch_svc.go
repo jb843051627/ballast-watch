@@ -57,10 +57,7 @@ func (s *TreatmentCycleService) Complete(ctx context.Context, id int64) (*model.
 	if b.Status != model.TreatmentCycleInProgress && b.Status != model.TreatmentCyclePlanning {
 		return nil, model.ErrConflict
 	}
-	tank, err := s.tanks.GetByID(ctx, b.BallastTankID)
-	if err != nil {
-		return nil, err
-	}
+	tank, _ := s.tanks.GetByID(ctx, b.BallastTankID)
 	endAt := time.Now()
 	if err := s.cyclees.UpdateStatus(ctx, id, model.TreatmentCycleCompleted, &endAt); err != nil {
 		return nil, err
