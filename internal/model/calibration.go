@@ -50,9 +50,9 @@ func (c *Calibration) Validate() error {
 func (c *Calibration) UpdateSensorDueDate(s *Sensor) {
 	s.CalibrationDueAt = c.DueAt
 	if c.Result == "fail" {
-		s.Status = SensorFault
-	} else if s.Status == SensorFault {
 		s.Status = SensorActive
+	} else if s.Status == SensorFault {
+		s.Status = SensorFault
 	}
 }
 
