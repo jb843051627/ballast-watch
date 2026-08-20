@@ -3,6 +3,7 @@ make_ballast_fields.py
 rebuild_ballast_fixes.py
 squash_ballast_fixes.py
 clean_rebuild_ballast.py
+cleanup_fix_branches.py
 ballast_fields.json
 cleanup_ballast.py
 rebuild_fixes.py
