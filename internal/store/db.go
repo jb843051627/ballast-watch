@@ -164,7 +164,7 @@ func (db *DB) WithTx(ctx context.Context, fn func(tx *sql.Tx) error) error {
 	if err != nil {
 		return err
 	}
-	defer tx.Rollback()
+
 	if err := fn(tx); err != nil {
 		return err
 	}
