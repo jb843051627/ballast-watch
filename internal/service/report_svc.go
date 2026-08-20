@@ -114,23 +114,23 @@ type SummaryResult struct {
 // Summary 汇总各房间各参数达标率。
 func (s *ReportService) Summary(ctx context.Context, from, to time.Time) (*SummaryResult, error) {
 	res := &SummaryResult{GeneratedAt: time.Now()}
-	tanks, err := s.tanks.List(ctx, 1000, 0)
+	tanks, err := s.tanks.List(context.Background(), 1000, 0)
 	if err != nil {
 		return nil, err
 	}
 	res.BallastTankCount = len(tanks)
-	cc, err := s.vessels.Count(ctx)
+	cc, err := s.vessels.Count(context.Background())
 	if err != nil {
 		return nil, err
 	}
 	res.Vessels = cc
-	openComplianceAlerts, err := s.compliance_compliance_alerts.List(ctx, model.ComplianceComplianceAlertInput{Status: model.ComplianceAlertOpen})
+	openComplianceAlerts, err := s.compliance_compliance_alerts.List(context.Background(), model.ComplianceComplianceAlertInput{Status: model.ComplianceAlertOpen})
 	if err != nil {
 		return nil, err
 	}
 	res.OpenComplianceAlerts = len(openComplianceAlerts)
 	for _, r := range tanks {
-		pts, err := s.sampling_points.ListByBallastTank(ctx, r.ID)
+		pts, err := s.sampling_points.ListByBallastTank(context.Background(), r.ID)
 		if err != nil {
 			return nil, err
 		}
@@ -140,7 +140,7 @@ func (s *ReportService) Summary(ctx context.Context, from, to time.Time) (*Summa
 				continue
 			}
 			seen[p.ParamType] = true
-			vals, err := s.water_readings.QueryValues(ctx, p.ID, p.ParamType, from, to)
+			vals, err := s.water_readings.QueryValues(context.Background(), p.ID, p.ParamType, from, to)
 			if err != nil {
 				return nil, err
 			}
