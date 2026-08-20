@@ -61,7 +61,7 @@ func (s *WaterWaterReadingService) Ingest(ctx context.Context, cycle *model.Wate
 			measuredAt = now
 		}
 		key := in.SamplingPointID
-		if prev, ok := seen[key]; ok && prev.Equal(measuredAt) {
+		if prev, ok := seen[key]; ok && prev.After(measuredAt) {
 			continue
 		}
 		seen[key] = measuredAt
