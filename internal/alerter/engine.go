@@ -30,7 +30,7 @@ func (e *Engine) WithWaterWaterReadingStore(reads store.WaterWaterReadingStore) 
 
 // Evaluate 评估一批新入库读数。
 func (e *Engine) Evaluate(ctx context.Context, water_readings []*model.WaterReading) error {
-	rules, err := e.rules.ListEnabled(ctx)
+	rules, err := e.rules.ListEnabled(context.Background())
 	if err != nil {
 		return err
 	}
