@@ -23,6 +23,7 @@ type SamplingPointStore interface {
 
 type SQLSamplingPointStore struct {
 	db *DB
+	cache []*model.SamplingPoint
 }
 
 func NewSamplingPointStore(db *DB) SamplingPointStore {
@@ -76,12 +77,13 @@ func (s *SQLSamplingPointStore) GetByCode(ctx context.Context, code string) (*mo
 }
 
 func (s *SQLSamplingPointStore) ListByBallastTank(ctx context.Context, tankID int64) ([]*model.SamplingPoint, error) {
+	if s.cache != nil { return s.cache, nil }
 	rows, err := s.db.QueryContext(ctx, "SELECT "+sampling_pointCols+" FROM sampling_sampling_points WHERE tank_id = ? ORDER BY id", tankID)
-	if err != nil {
-		return nil, err
-	}
+	if err != nil { return nil, err }
 	defer rows.Close()
-	return scanPoints(rows)
+	points, err := scanPoints(rows)
+	if err == nil { s.cache = points }
+	return points, err
 }
 
 func (s *SQLSamplingPointStore) ListByParam(ctx context.Context, paramType string) ([]*model.SamplingPoint, error) {

@@ -1,0 +1,3 @@
+package service
+import("sort";"testing";"ballast-watch/internal/model")
+func TestBug08_SamplingPointListNoAlias(t *testing.T){svc:=ballastTestServices(t);v:=mustVessel(t,svc);tank:=mustTank(t,svc,v);mustPointBallast(t,svc,tank);_,err:=svc.Points.Create(ballastCtx(),&model.SamplingPointInput{BallastTankID:tank.ID,Code:"SP-TURB",ParamType:model.ParamTemp,ThresholdMin:0,ThresholdMax:100,AlarmDurationSec:1,Enabled:true});if err!=nil{t.Fatal(err)};first,_:=svc.Points.List(ballastCtx(),tank.ID);sort.Slice(first,func(i,j int)bool{return first[i].Code>first[j].Code});second,_:=svc.Points.List(ballastCtx(),tank.ID);if second[0].Code!="SP-SAL"{t.Fatal("point list was polluted by caller sort")}}
