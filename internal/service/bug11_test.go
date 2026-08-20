@@ -1,0 +1,3 @@
+package service
+import("sync";"testing";"time";"ballast-watch/internal/model")
+func TestBug11_ConcurrentWaterIngest(t *testing.T){svc:=ballastTestServices(t);v:=mustVessel(t,svc);tank:=mustTank(t,svc,v);p:=mustPointBallast(t,svc,tank);var wg sync.WaitGroup;for g:=0;g<8;g++{wg.Add(1);go func(){defer wg.Done();for i:=0;i<100;i++{_,_=svc.WaterReadings.Ingest(ballastCtx(),&model.WaterWaterReadingTreatmentCycle{WaterReadings:[]model.WaterWaterReadingInput{{SamplingPointID:p.ID,ParamType:model.ParamHumidity,Value:40,MeasuredAt:time.Now().Add(time.Duration(i)*time.Millisecond).Format(time.RFC3339Nano)}}})}}()};wg.Wait()}

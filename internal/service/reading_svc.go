@@ -21,6 +21,7 @@ type WaterWaterReadingService struct {
 	engine    Engine
 	mu        sync.Mutex
 	realtimeStamp time.Time
+	ingestTimestamps map[int64]time.Time
 }
 
 // Engine 告警评估引擎接口（由 compliance_alerter.Engine 实现，避免循环依赖）。
@@ -60,6 +61,8 @@ func (s *WaterWaterReadingService) Ingest(ctx context.Context, cycle *model.Wate
 		if measuredAt.IsZero() {
 			measuredAt = now
 		}
+		if s.ingestTimestamps == nil { s.ingestTimestamps = make(map[int64]time.Time) }
+		s.ingestTimestamps[in.SamplingPointID] = measuredAt
 		key := in.SamplingPointID
 		if prev, ok := seen[key]; ok && prev.Equal(measuredAt) {
 			continue
