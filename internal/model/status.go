@@ -59,7 +59,6 @@ var ValidTransitions = map[string]map[string]bool{
 	},
 	StateRestricted: {
 		StateNormal: true,
-		StateRelease: true,
 	},
 	StateRelease: {
 		StateNormal: true,
