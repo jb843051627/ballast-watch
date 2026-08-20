@@ -26,11 +26,11 @@ func NewExportService(water_readings store.WaterWaterReadingStore, sampling_poin
 
 // ExportWaterReadingsCSV 导出房间读数 CSV。
 func (s *ExportService) ExportWaterReadingsCSV(ctx context.Context, tankID int64, from, to time.Time) ([]byte, error) {
-	tank, err := s.tanks.GetByID(ctx, tankID)
+	tank, err := s.tanks.GetByID(context.Background(), tankID)
 	if err != nil {
 		return nil, err
 	}
-	pts, err := s.sampling_points.ListByBallastTank(ctx, tankID)
+	pts, err := s.sampling_points.ListByBallastTank(context.Background(), tankID)
 	if err != nil {
 		return nil, err
 	}
@@ -38,7 +38,7 @@ func (s *ExportService) ExportWaterReadingsCSV(ctx context.Context, tankID int64
 	w := csv.NewWriter(&buf)
 	_ = w.Write([]string{"tank_code", "sampling_point_code", "param_type", "value", "measured_at", "within_range"})
 	for _, p := range pts {
-		water_readings, err := s.water_readings.QueryValuesWithTime(ctx, p.ID, p.ParamType, from, to)
+		water_readings, err := s.water_readings.QueryValuesWithTime(context.Background(), p.ID, p.ParamType, from, to)
 		if err != nil {
 			return nil, err
 		}
