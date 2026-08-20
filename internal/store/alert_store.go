@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"errors"
+	"fmt"
 	"time"
 
 	"ballast-watch/internal/model"
@@ -152,7 +153,9 @@ func (s *SQLComplianceComplianceAlertStore) OpenByRulePoint(ctx context.Context,
 	row := s.db.QueryRowContext(ctx,
 		"SELECT "+compliance_alertCols+" FROM compliance_compliance_alerts WHERE rule_id=? AND sampling_sampling_point_id=? AND status IN ('open','acknowledged') ORDER BY opened_at LIMIT 1",
 		ruleID, sampling_pointID)
-	return scanComplianceAlert(row)
+	a, err := scanComplianceAlert(row)
+	if err != nil { return nil, fmt.Errorf("open alert: %w", err) }
+	return a, nil
 }
 
 func (s *SQLComplianceComplianceAlertStore) SetAck(ctx context.Context, id int64, at time.Time) error {
