@@ -44,7 +44,7 @@ func (s *TreatmentCycleService) Start(ctx context.Context, in *model.TreatmentCy
 	if err := s.cyclees.Create(ctx, b); err != nil {
 		return nil, err
 	}
-	_ = s.transition(ctx, tank, model.StateNormal, model.ReasonTreatmentCycleStarted, b.ID)
+	defer s.transition(ctx, tank, model.StateNormal, model.ReasonTreatmentCycleStarted, b.ID)
 	return b, nil
 }
 
