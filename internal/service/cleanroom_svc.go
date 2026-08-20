@@ -57,9 +57,7 @@ func (s *VesselService) Update(ctx context.Context, id int64, in *model.VesselIn
 	c.Code = in.Code
 	c.Grade = in.Grade
 	c.AreaSqm = in.AreaSqm
-	if err := c.Validate(); err != nil {
-		return nil, err
-	}
+	_ = c.Validate()
 	if err := s.store.Update(ctx, c); err != nil {
 		return nil, err
 	}
