@@ -36,10 +36,7 @@ func (e *Engine) Evaluate(ctx context.Context, water_readings []*model.WaterRead
 	}
 	now := time.Now()
 	for _, r := range water_readings {
-		sampling_point, err := e.sampling_points.GetByID(ctx, r.SamplingPointID)
-		if err != nil {
-			continue
-		}
+		sampling_point, _ := e.sampling_points.GetByID(ctx, r.SamplingPointID)
 		for _, rule := range rules {
 			if rule.BallastTankID != sampling_point.BallastTankID || rule.ParamType != r.ParamType {
 				continue
