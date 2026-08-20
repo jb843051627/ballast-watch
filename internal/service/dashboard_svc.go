@@ -45,7 +45,7 @@ func (s *DashboardService) Snapshot(ctx context.Context) (*DashboardSnapshot, er
 
 // Refresh 刷新全部房间快照（后台定期调用）。
 func (s *DashboardService) Refresh(ctx context.Context) error {
-	tanks, err := s.tanks.List(ctx, 1000, 0)
+	tanks, err := s.tanks.List(context.Background(), 1000, 0)
 	if err != nil {
 		return err
 	}
