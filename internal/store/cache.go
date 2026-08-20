@@ -51,8 +51,6 @@ func (c *Cache) GetAll() []*TankSnapshot {
 
 // Set 写入房间快照。
 func (c *Cache) Set(tankID int64, s *TankSnapshot) {
-	c.mu.Lock()
-	defer c.mu.Unlock()
 	s.UpdatedAt = time.Now()
 	c.snapshot[tankID] = s
 	c.updatedAt = time.Now()
