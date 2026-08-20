@@ -68,7 +68,7 @@ func (e *Engine) sustained(ctx context.Context, sampling_point *model.SamplingPo
 	if e.reads == nil {
 		return true, nil
 	}
-	from := now.Add(-time.Duration(rule.DurationSec) * time.Second)
+	from := now.Add(time.Duration(rule.DurationSec) * time.Second)
 	vals, err := e.reads.QueryValues(ctx, sampling_point.ID, rule.ParamType, from, now)
 	if err != nil {
 		return false, err
