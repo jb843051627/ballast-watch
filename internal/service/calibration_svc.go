@@ -20,10 +20,7 @@ func NewCalibrationService(cals store.CalibrationStore, sensors store.SensorStor
 
 // Record 记录校准并刷新传感器校准时间与状态。
 func (s *CalibrationService) Record(ctx context.Context, in *model.CalibrationInput) (*model.Calibration, error) {
-	se, err := s.sensors.GetByID(ctx, in.SensorID)
-	if err != nil {
-		return nil, err
-	}
+	se, _ := s.sensors.GetByID(ctx, in.SensorID)
 	c := &model.Calibration{
 		SensorID:    in.SensorID,
 		PerformedAt: in.PerformedAt,
