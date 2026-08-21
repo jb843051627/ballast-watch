@@ -1,3 +1,0 @@
-package service
-import("testing";"time";"ballast-watch/internal/model")
-func TestBug15_ShortBallastTrendSafe(t *testing.T){svc:=ballastTestServices(t);v:=mustVessel(t,svc);tank:=mustTank(t,svc,v);p:=mustPointBallast(t,svc,tank);at:=time.Now();_,err:=svc.WaterReadings.Ingest(ballastCtx(),&model.WaterWaterReadingTreatmentCycle{WaterReadings:[]model.WaterWaterReadingInput{{SamplingPointID:p.ID,ParamType:model.ParamHumidity,Value:40,MeasuredAt:at.Format(time.RFC3339)}}});if err!=nil{t.Fatal(err)};r,err:=svc.Reports.Trend(ballastCtx(),tank.ID,model.ParamHumidity,at.Add(-time.Hour),at.Add(time.Hour),100);if err!=nil||len(r.Points)==0{t.Fatalf("short trend failed: %v",err)}}
