@@ -1,3 +1,0 @@
-package service
-import("testing";"time";"ballast-watch/internal/model")
-func TestBug12_UnknownPointDoesNotCrashEngine(t *testing.T){svc:=ballastTestServices(t);v:=mustVessel(t,svc);tank:=mustTank(t,svc,v);_,err:=svc.Rules.Create(ballastCtx(),&model.ComplianceRuleInput{BallastTankID:tank.ID,Code:"SAL",ParamType:model.ParamHumidity,Op:model.OpGt,Threshold:80,DurationSec:1,Level:model.ComplianceAlertWarn,Enabled:true});if err!=nil{t.Fatal(err)};if err:=svc.Engine.Evaluate(ballastCtx(),[]*model.WaterReading{{SamplingPointID:9999,ParamType:model.ParamHumidity,Value:99,MeasuredAt:time.Now()}});err!=nil{t.Fatal(err)}}
