@@ -61,8 +61,12 @@ func (s *WaterWaterReadingService) Ingest(ctx context.Context, cycle *model.Wate
 		if measuredAt.IsZero() {
 			measuredAt = now
 		}
-		if s.ingestTimestamps == nil { s.ingestTimestamps = make(map[int64]time.Time) }
+		s.mu.Lock()
+		if s.ingestTimestamps == nil {
+			s.ingestTimestamps = make(map[int64]time.Time)
+		}
 		s.ingestTimestamps[in.SamplingPointID] = measuredAt
+		s.mu.Unlock()
 		key := in.SamplingPointID
 		if prev, ok := seen[key]; ok && prev.Equal(measuredAt) {
 			continue
