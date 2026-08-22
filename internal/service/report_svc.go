@@ -152,7 +152,7 @@ func (s *ReportService) Summary(ctx context.Context, from, to time.Time) (*Summa
 			}
 			rate := 0.0
 			if len(vals) > 0 {
-				rate = float64(oor) / float64(len(vals)) * 100
+				rate = float64(len(vals)-oor) / float64(len(vals)) * 100
 			}
 			res.Compliance = append(res.Compliance, BallastTankCompliance{
 				BallastTankID:     r.ID,
