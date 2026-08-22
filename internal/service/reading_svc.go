@@ -49,9 +49,24 @@ func (s *WaterWaterReadingService) Ingest(ctx context.Context, cycle *model.Wate
 	now := time.Now()
 	var toInsert []*model.WaterReading
 	seen := make(map[int64]time.Time)
+	// 已校验过的采样点缓存：同批次内复用，避免对同一点位反复查库。
+	pointCache := make(map[int64]*model.SamplingPoint)
 	for _, in := range cycle.WaterReadings {
 		if !model.ParamTypes[in.ParamType] {
 			return 0, model.ErrInvalidParamType
+		}
+		// 采样点必须存在且处于启用状态：撤销/不存在的点位不得进入采集链（整批校验）。
+		point, ok := pointCache[in.SamplingPointID]
+		if !ok {
+			p, err := s.sampling_points.GetByID(ctx, in.SamplingPointID)
+			if err != nil {
+				return 0, err
+			}
+			pointCache[in.SamplingPointID] = p
+			point = p
+		}
+		if !point.Enabled {
+			return 0, model.ErrSamplingPointDisabled
 		}
 		measuredAt, err := util.ParseTime(in.MeasuredAt)
 		if err != nil {

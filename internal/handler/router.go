@@ -131,7 +131,8 @@ func statusFromError(err error) int {
 		model.ErrInvalidBattery, model.ErrInvalidLevel, model.ErrInvalidComplianceAlertStatus,
 		model.ErrInvalidOp, model.ErrSensorRequired, model.ErrStandardRequired,
 		model.ErrInvalidResult, model.ErrOperatorRequired, model.ErrInvalidDueDate,
-		model.ErrProductRequired, model.ErrInvalidTreatmentCycleStatus, model.ErrInvalidState:
+		model.ErrProductRequired, model.ErrInvalidTreatmentCycleStatus, model.ErrInvalidState,
+		model.ErrSamplingPointDisabled:
 		return http.StatusBadRequest
 	default:
 		return http.StatusInternalServerError
