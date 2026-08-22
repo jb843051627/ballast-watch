@@ -2,6 +2,7 @@ package compliance_alerter
 
 import (
 	"context"
+	"errors"
 	"time"
 
 	"ballast-watch/internal/model"
@@ -36,7 +37,19 @@ func (e *Engine) Evaluate(ctx context.Context, water_readings []*model.WaterRead
 	}
 	now := time.Now()
 	for _, r := range water_readings {
-		sampling_point, _ := e.sampling_points.GetByID(ctx, r.SamplingPointID)
+		sampling_point, err := e.sampling_points.GetByID(ctx, r.SamplingPointID)
+		if err != nil {
+			// 采样点已注销或查询失败：跳过该读数，不阻断同批次其余读数的评估。
+			// 旧处理单元切换期间，网关缓存包仍会携带已注销点位的读数到达，此处必须容错。
+			if errors.Is(err, model.ErrNotFound) {
+				continue
+			}
+			return err
+		}
+		// 已禁用（注销）的采样点不再触发合规评估。
+		if !sampling_point.Enabled {
+			continue
+		}
 		for _, rule := range rules {
 			if rule.BallastTankID != sampling_point.BallastTankID || rule.ParamType != r.ParamType {
 				continue
