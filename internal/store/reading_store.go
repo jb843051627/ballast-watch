@@ -176,9 +176,12 @@ func (s *SQLWaterWaterReadingStore) QueryValuesWithTime(ctx context.Context, sam
 }
 
 func (s *SQLWaterWaterReadingStore) ExistsDup(ctx context.Context, sampling_pointID int64, measuredAt time.Time) (bool, error) {
+	// 按秒判重：measuredAt 已由上层截断到秒，查询 [measuredAt, measuredAt+1s) 区间内是否已有记录，
+	// 这样即便历史数据残留亚秒精度，也能正确识别同一秒内的重复样本。
 	var n int
 	if err := s.db.QueryRowContext(ctx,
-		"SELECT COUNT(*) FROM water_readings WHERE sampling_sampling_point_id=? AND measured_at=?", sampling_pointID, measuredAt).Scan(&n); err != nil {
+		"SELECT COUNT(*) FROM water_readings WHERE sampling_sampling_point_id=? AND measured_at>=? AND measured_at<?",
+		sampling_pointID, measuredAt, measuredAt.Add(time.Second)).Scan(&n); err != nil {
 		return false, err
 	}
 	return n > 0, nil

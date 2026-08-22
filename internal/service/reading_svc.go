@@ -28,6 +28,12 @@ type Engine interface {
 	Evaluate(ctx context.Context, water_readings []*model.WaterReading) error
 }
 
+// readingDupKey 批内按秒去重的组合键：同一采样点同一秒只保留一条。
+type readingDupKey struct {
+	SamplingPointID int64
+	sec             int64
+}
+
 // NewWaterWaterReadingService 创建读数服务。
 func NewWaterWaterReadingService(water_readings store.WaterWaterReadingStore, sampling_points store.SamplingPointStore, sensors store.SensorStore,
 	compliance_compliance_alerts store.ComplianceComplianceAlertStore, cache *store.Cache, engine Engine) *WaterWaterReadingService {
@@ -42,13 +48,16 @@ func NewWaterWaterReadingService(water_readings store.WaterWaterReadingStore, sa
 }
 
 // Ingest 批量上报读数：整批校验 + 去重 + 事务入库 + 评估。
+// 加锁串行化判重-入库临界区，避免并发重发请求双双通过 ExistsDup 后各自落库。
 func (s *WaterWaterReadingService) Ingest(ctx context.Context, cycle *model.WaterWaterReadingTreatmentCycle) (int, error) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
 	if len(cycle.WaterReadings) == 0 {
 		return 0, model.ErrInvalidInput
 	}
 	now := time.Now()
 	var toInsert []*model.WaterReading
-	seen := make(map[int64]time.Time)
+	seen := make(map[readingDupKey]bool)
 	for _, in := range cycle.WaterReadings {
 		if !model.ParamTypes[in.ParamType] {
 			return 0, model.ErrInvalidParamType
@@ -60,11 +69,13 @@ func (s *WaterWaterReadingService) Ingest(ctx context.Context, cycle *model.Wate
 		if measuredAt.IsZero() {
 			measuredAt = now
 		}
-		key := in.SamplingPointID
-		if prev, ok := seen[key]; ok && prev.After(measuredAt) {
+		// 统一截断到秒：同一采样点同一秒视为重复采样点，仅保留一条。
+		measuredAt = util.TruncateSecond(measuredAt)
+		key := readingDupKey{SamplingPointID: in.SamplingPointID, sec: measuredAt.Unix()}
+		if seen[key] {
 			continue
 		}
-		seen[key] = measuredAt
+		seen[key] = true
 		dup, err := s.water_readings.ExistsDup(ctx, in.SamplingPointID, measuredAt)
 		if err != nil {
 			return 0, err
