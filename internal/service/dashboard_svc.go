@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"errors"
 	"time"
 
 	"ballast-watch/internal/model"
@@ -49,14 +50,20 @@ func (s *DashboardService) Refresh(ctx context.Context) error {
 	if err != nil {
 		return err
 	}
+	var refreshErr error
 	for _, r := range tanks {
 		snap, err := s.buildTankSnapshot(ctx, r)
 		if err != nil {
+			// 采样点查询失败时静默吞错会让大屏显示空舱并报成功，值班员会误判没有数据。
+			// 记录首个失败原因并向上抛出，由后台任务记录日志而非上报成功。
+			if refreshErr == nil {
+				refreshErr = err
+			}
 			continue
 		}
 		s.cache.Set(r.ID, snap)
 	}
-	return nil
+	return refreshErr
 }
 
 func (s *DashboardService) buildTankSnapshot(ctx context.Context, tank *model.BallastTank) (*store.TankSnapshot, error) {
@@ -78,7 +85,12 @@ func (s *DashboardService) buildTankSnapshot(ctx context.Context, tank *model.Ba
 	for _, p := range sampling_points {
 		latest, err := s.water_readings.LatestByPoint(ctx, p.ID)
 		if err != nil {
-			continue
+			// ErrNotFound 表示该点确实无读数，跳过即可；其它错误（DB 故障等）必须上抛，
+			// 否则会被当成"空舱"静默写入缓存，值班员误判为没有数据。
+			if errors.Is(err, model.ErrNotFound) {
+				continue
+			}
+			return nil, err
 		}
 		realtime = append(realtime, model.RealtimeWaterWaterReading{
 			SamplingPointID:    p.ID,
