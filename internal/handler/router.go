@@ -2,6 +2,7 @@ package handler
 
 import (
 	"encoding/json"
+	"errors"
 	"log"
 	"net/http"
 	"strconv"
@@ -116,22 +117,44 @@ func pathID(r *http.Request, name string) (int64, error) {
 	return id, nil
 }
 
-// statusFromError 错误码映射。
+// statusFromError 错误码映射。用 errors.Is 识别被包装的 sentinel，
+// 避免 fmt.Errorf 包装后的业务错误丢失语义、错误地回落到 500。
 func statusFromError(err error) int {
-	switch err {
-	case model.ErrNotFound:
+	switch {
+	case errors.Is(err, model.ErrNotFound):
 		return http.StatusNotFound
-	case model.ErrDuplicateCode, model.ErrConflict, model.ErrStateConflict, model.ErrTreatmentCycleActive:
+	case errors.Is(err, model.ErrDuplicateCode) ||
+		errors.Is(err, model.ErrConflict) ||
+		errors.Is(err, model.ErrStateConflict) ||
+		errors.Is(err, model.ErrTreatmentCycleActive):
 		return http.StatusConflict
-	case model.ErrInvalidInput, model.ErrNameRequired, model.ErrCodeRequired,
-		model.ErrInvalidGrade, model.ErrInvalidArea, model.ErrBallastTankRequired,
-		model.ErrVesselRequired, model.ErrInvalidKind, model.ErrInvalidPressureTarget,
-		model.ErrPointRequired, model.ErrInvalidParamType, model.ErrThresholdInverted,
-		model.ErrInvalidDuration, model.ErrSerialRequired, model.ErrVendorRequired,
-		model.ErrInvalidBattery, model.ErrInvalidLevel, model.ErrInvalidComplianceAlertStatus,
-		model.ErrInvalidOp, model.ErrSensorRequired, model.ErrStandardRequired,
-		model.ErrInvalidResult, model.ErrOperatorRequired, model.ErrInvalidDueDate,
-		model.ErrProductRequired, model.ErrInvalidTreatmentCycleStatus, model.ErrInvalidState:
+	case errors.Is(err, model.ErrInvalidInput) ||
+		errors.Is(err, model.ErrNameRequired) ||
+		errors.Is(err, model.ErrCodeRequired) ||
+		errors.Is(err, model.ErrInvalidGrade) ||
+		errors.Is(err, model.ErrInvalidArea) ||
+		errors.Is(err, model.ErrBallastTankRequired) ||
+		errors.Is(err, model.ErrVesselRequired) ||
+		errors.Is(err, model.ErrInvalidKind) ||
+		errors.Is(err, model.ErrInvalidPressureTarget) ||
+		errors.Is(err, model.ErrPointRequired) ||
+		errors.Is(err, model.ErrInvalidParamType) ||
+		errors.Is(err, model.ErrThresholdInverted) ||
+		errors.Is(err, model.ErrInvalidDuration) ||
+		errors.Is(err, model.ErrSerialRequired) ||
+		errors.Is(err, model.ErrVendorRequired) ||
+		errors.Is(err, model.ErrInvalidBattery) ||
+		errors.Is(err, model.ErrInvalidLevel) ||
+		errors.Is(err, model.ErrInvalidComplianceAlertStatus) ||
+		errors.Is(err, model.ErrInvalidOp) ||
+		errors.Is(err, model.ErrSensorRequired) ||
+		errors.Is(err, model.ErrStandardRequired) ||
+		errors.Is(err, model.ErrInvalidResult) ||
+		errors.Is(err, model.ErrOperatorRequired) ||
+		errors.Is(err, model.ErrInvalidDueDate) ||
+		errors.Is(err, model.ErrProductRequired) ||
+		errors.Is(err, model.ErrInvalidTreatmentCycleStatus) ||
+		errors.Is(err, model.ErrInvalidState):
 		return http.StatusBadRequest
 	default:
 		return http.StatusInternalServerError
