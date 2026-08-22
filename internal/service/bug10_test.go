@@ -1,3 +1,0 @@
-package service
-import("strings";"testing";"time";"ballast-watch/internal/model")
- func TestBug10_ExportKeepsCST(t *testing.T){svc:=ballastTestServices(t);v:=mustVessel(t,svc);tank:=mustTank(t,svc,v);p:=mustPointBallast(t,svc,tank);at:=time.Date(2026,1,1,8,0,0,0,time.FixedZone("CST",8*3600));_,err:=svc.WaterReadings.Ingest(ballastCtx(),&model.WaterWaterReadingTreatmentCycle{WaterReadings:[]model.WaterWaterReadingInput{{SamplingPointID:p.ID,ParamType:model.ParamHumidity,Value:40,MeasuredAt:at.Format(time.RFC3339)}}});if err!=nil{t.Fatal(err)};data,err:=svc.Export.ExportWaterReadingsCSV(ballastCtx(),tank.ID,at.Add(-time.Hour),at.Add(time.Hour));if err!=nil{t.Fatal(err)};if !strings.Contains(string(data),"08:00:00"){t.Fatalf("timezone shifted: %s",data)}}
