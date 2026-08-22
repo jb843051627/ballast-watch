@@ -30,21 +30,24 @@ func NewCache() *Cache {
 	return &Cache{snapshot: make(map[int64]*TankSnapshot)}
 }
 
-// Get 读取房间快照。
+// Get 读取房间快照。返回独立副本，调用方对其排序或就地修改不会污染缓存内部状态。
 func (c *Cache) Get(tankID int64) (*TankSnapshot, bool) {
 	c.mu.RLock()
 	defer c.mu.RUnlock()
 	s, ok := c.snapshot[tankID]
-	return s, ok
+	if !ok {
+		return nil, false
+	}
+	return s.clone(), true
 }
 
-// GetAll 读取全部快照。
+// GetAll 读取全部快照。返回独立副本，调用方可安全修改。
 func (c *Cache) GetAll() []*TankSnapshot {
 	c.mu.RLock()
 	defer c.mu.RUnlock()
 	out := make([]*TankSnapshot, 0, len(c.snapshot))
 	for _, s := range c.snapshot {
-		out = append(out, s)
+		out = append(out, s.clone())
 	}
 	return out
 }
@@ -70,6 +73,16 @@ func (c *Cache) UpdatedAt() time.Time {
 	c.mu.RLock()
 	defer c.mu.RUnlock()
 	return c.updatedAt
+}
+
+// clone 返回快照的独立副本，复制 Realtime 底层数组，
+// 使调用方对返回值的排序或就地修改不会回写缓存内部状态。
+func (s *TankSnapshot) clone() *TankSnapshot {
+	cp := *s
+	if s.Realtime != nil {
+		cp.Realtime = append([]model.RealtimeWaterWaterReading(nil), s.Realtime...)
+	}
+	return &cp
 }
 
 // BallastTankID 由 TankSnapshot 构造（供排序去重）。
