@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"errors"
 	"time"
 
 	"ballast-watch/internal/model"
@@ -45,11 +46,15 @@ func (s *DashboardService) Snapshot(ctx context.Context) (*DashboardSnapshot, er
 
 // Refresh 刷新全部房间快照（后台定期调用）。
 func (s *DashboardService) Refresh(ctx context.Context) error {
-	tanks, err := s.tanks.List(context.Background(), 1000, 0)
+	tanks, err := s.tanks.List(ctx, 1000, 0)
 	if err != nil {
 		return err
 	}
 	for _, r := range tanks {
+		// 大屏切换船舶/停机时 ctx 被取消，立即收尾，不再继续查所有实时快照
+		if err := ctx.Err(); err != nil {
+			return err
+		}
 		snap, err := s.buildTankSnapshot(ctx, r)
 		if err != nil {
 			return err
@@ -78,7 +83,11 @@ func (s *DashboardService) buildTankSnapshot(ctx context.Context, tank *model.Ba
 	for _, p := range sampling_points {
 		latest, err := s.water_readings.LatestByPoint(ctx, p.ID)
 		if err != nil {
-			continue
+			// 无读数时跳过该点；其余错误（含 ctx 取消）必须上抛，避免吞掉取消信号导致刷新迟迟不收尾
+			if errors.Is(err, model.ErrNotFound) {
+				continue
+			}
+			return nil, err
 		}
 		realtime = append(realtime, model.RealtimeWaterWaterReading{
 			SamplingPointID:    p.ID,
