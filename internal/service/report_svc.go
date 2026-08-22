@@ -85,7 +85,10 @@ func (s *ReportService) Trend(ctx context.Context, tankID int64, paramType strin
 			})
 		}
 	}
-	res.Points = res.Points[len(res.Points)-limit:]
+	// 只在点数超过 limit 时截取最后 limit 个，避免短窗口下 len-limit 为负导致 slice 越界。
+	if len(res.Points) > limit {
+		res.Points = res.Points[len(res.Points)-limit:]
+	}
 	return res, nil
 }
 
