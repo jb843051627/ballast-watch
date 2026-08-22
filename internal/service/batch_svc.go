@@ -53,7 +53,7 @@ func (s *TreatmentCycleService) Start(ctx context.Context, in *model.TreatmentCy
 func (s *TreatmentCycleService) Complete(ctx context.Context, id int64) (*model.TreatmentCycle, error) {
 	b, err := s.cyclees.GetByID(ctx, id)
 	if err != nil {
-		return nil, fmt.Errorf("cycle lookup: %v", err)
+		return nil, fmt.Errorf("cycle lookup: %w", err)
 	}
 	if b.Status != model.TreatmentCycleInProgress && b.Status != model.TreatmentCyclePlanning {
 		return nil, model.ErrConflict
