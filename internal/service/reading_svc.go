@@ -49,9 +49,23 @@ func (s *WaterWaterReadingService) Ingest(ctx context.Context, cycle *model.Wate
 	now := time.Now()
 	var toInsert []*model.WaterReading
 	seen := make(map[int64]time.Time)
+	// pointCache 批内复用采样点查询结果；未知或已撤销（enabled=false）的点位整批拒绝，不得进入采集链。
+	pointCache := make(map[int64]*model.SamplingPoint)
 	for _, in := range cycle.WaterReadings {
 		if !model.ParamTypes[in.ParamType] {
 			return 0, model.ErrInvalidParamType
+		}
+		p, ok := pointCache[in.SamplingPointID]
+		if !ok {
+			var err error
+			p, err = s.sampling_points.GetByID(ctx, in.SamplingPointID)
+			if err != nil {
+				return 0, err // 未知点位（ErrNotFound 等）：拒绝
+			}
+			pointCache[in.SamplingPointID] = p
+		}
+		if !p.Enabled {
+			return 0, model.ErrPointDisabled // 已撤销点位：拒绝
 		}
 		measuredAt, err := util.ParseTime(in.MeasuredAt)
 		if err != nil {

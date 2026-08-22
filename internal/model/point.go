@@ -80,4 +80,6 @@ var (
 	ErrInvalidParamType   = errors.New("参数类型非法")
 	ErrThresholdInverted  = errors.New("阈值上限小于下限")
 	ErrInvalidDuration    = errors.New("持续时长必须大于 0")
+	// ErrPointDisabled 采样点已停用（撤销），其读数不得进入采集链。
+	ErrPointDisabled = errors.New("采样点已停用")
 )
