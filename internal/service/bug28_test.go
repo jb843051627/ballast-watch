@@ -1,0 +1,3 @@
+package service
+import("testing";"time";"ballast-watch/internal/model")
+func TestBug28_FailedCalibrationFaultsSensor(t *testing.T){svc:=ballastTestServices(t);v:=mustVessel(t,svc);tank:=mustTank(t,svc,v);p:=mustPointBallast(t,svc,tank);sensor:=mustSensorBallast(t,svc,p);_,err:=svc.Calibrations.Record(ballastCtx(),&model.CalibrationInput{SensorID:sensor.ID,PerformedAt:time.Now(),DueAt:time.Now().Add(time.Hour),Standard:"BWTS",Result:"fail",Operator:"chief"});if err!=nil{t.Fatal(err)};got,_:=svc.Sensors.Get(ballastCtx(),sensor.ID);if got.Status!=model.SensorFault{t.Fatalf("expected fault, got %s",got.Status)}}
