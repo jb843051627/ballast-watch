@@ -29,6 +29,10 @@ func (s *TreatmentCycleService) Start(ctx context.Context, in *model.TreatmentCy
 	if _, err := s.cyclees.GetActiveByBallastTank(ctx, in.BallastTankID); err == nil {
 		return nil, model.ErrTreatmentCycleActive
 	}
+	// 舱状态损坏（如已处于 normal）时不允许启动，避免创建周期后状态机转移失败。
+	if !model.CanTransition(tank.Status, model.StateNormal) {
+		return nil, model.ErrStateConflict
+	}
 	b := &model.TreatmentCycle{
 		BallastTankID:    in.BallastTankID,
 		Name:      in.Name,
@@ -44,7 +48,11 @@ func (s *TreatmentCycleService) Start(ctx context.Context, in *model.TreatmentCy
 	if err := s.cyclees.Create(ctx, b); err != nil {
 		return nil, err
 	}
-	defer s.transition(ctx, tank, model.StateNormal, model.ReasonTreatmentCycleStarted, b.ID)
+	// 状态转移失败（舱状态损坏等）时回滚刚创建的周期，避免遗留 in_progress 周期而舱状态不变。
+	if err := s.transition(ctx, tank, model.StateNormal, model.ReasonTreatmentCycleStarted, b.ID); err != nil {
+		_ = s.cyclees.UpdateStatus(ctx, b.ID, model.TreatmentCycleAborted, &b.StartAt)
+		return nil, err
+	}
 	return b, nil
 }
 
