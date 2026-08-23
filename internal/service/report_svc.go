@@ -152,7 +152,8 @@ func (s *ReportService) Summary(ctx context.Context, from, to time.Time) (*Summa
 			}
 			rate := 0.0
 			if len(vals) > 0 {
-				rate = float64(oor) / float64(len(vals)) * 100
+				// 达标率 = (总数 - 超标数) / 总数；oor 为超标（不在 [min,max] 区间内）的读数条数。
+				rate = float64(len(vals)-oor) / float64(len(vals)) * 100
 			}
 			res.Compliance = append(res.Compliance, BallastTankCompliance{
 				BallastTankID:     r.ID,
