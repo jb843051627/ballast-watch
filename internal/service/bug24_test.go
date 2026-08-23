@@ -1,0 +1,3 @@
+package service
+import("testing";"time";"ballast-watch/internal/model")
+func TestBug24_ComplianceRate(t *testing.T){svc:=ballastTestServices(t);v:=mustVessel(t,svc);tank:=mustTank(t,svc,v);p:=mustPointBallast(t,svc,tank);at:=time.Now();for i,val:=range []float64{40,50,90}{_,err:=svc.WaterReadings.Ingest(ballastCtx(),&model.WaterWaterReadingTreatmentCycle{WaterReadings:[]model.WaterWaterReadingInput{{SamplingPointID:p.ID,ParamType:model.ParamHumidity,Value:val,MeasuredAt:at.Add(time.Duration(i)*time.Second).Format(time.RFC3339)}}});if err!=nil{t.Fatal(err)}};r,err:=svc.Reports.Summary(ballastCtx(),at.Add(-time.Hour),at.Add(time.Hour));if err!=nil{t.Fatal(err)};if r.Compliance[0].Rate<66||r.Compliance[0].Rate>67{t.Fatalf("wrong compliance %.1f",r.Compliance[0].Rate)}}
